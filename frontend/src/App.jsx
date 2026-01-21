@@ -52,13 +52,13 @@ function App() {
       setMessages(prev => [...prev, { role: 'assistant', content: res.data.response }]);
     } catch (error) {
       console.error(error);
-      const errMsg = error.response ? 
-        `Error: ${error.response.data.detail}` : 
+      const errMsg = error.response ?
+        `Error: ${error.response.data.detail}` :
         "Network Error: Ensure backend is running on port 8000.";
-      
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: `⚠️ **System Alert**: ${errMsg}` 
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `⚠️ **System Alert**: ${errMsg}`
       }]);
     } finally {
       setIsLoading(false);
@@ -87,10 +87,10 @@ function App() {
           <Database className="w-6 h-6" style={{ color: 'var(--accent-color)' }} />
           <h2 className="text-xl font-bold text-white">Memory Core</h2>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto">
           <p className="text-sm text-gray-400 mb-2">Ingest new knowledge here.</p>
-          <textarea 
+          <textarea
             className="w-full h-64 bg-slate-800/50 text-white p-3 rounded-lg border border-slate-700 focus:border-blue-500 focus:outline-none resize-none transition-all"
             placeholder="Paste text to add to vector database..."
             value={ingestText}
@@ -98,24 +98,24 @@ function App() {
           />
         </div>
 
-        <button 
+        <button
           onClick={handleIngest}
           disabled={isIngesting}
           className="btn-primary w-full flex justify-center items-center space-x-2"
         >
-           {isIngesting ? <Loader2 className="w-4 h-4 animate-spin"/> : <Database className="w-4 h-4" />}
-           <span>Update Database</span>
+          {isIngesting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Database className="w-4 h-4" />}
+          <span>Update Database</span>
         </button>
 
         {/* Status Indicator */}
         <div className={`p-3 rounded-lg flex items-center space-x-2 ${serverStatus === 'online' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-            <div className={`w-2 h-2 rounded-full ${serverStatus === 'online' ? 'bg-green-400' : 'bg-red-400'}`}></div>
-            <span className="text-xs font-mono uppercase">
-              {serverStatus === 'online' ? 'Systems Nominal' : 'Connection Lost'}
-            </span>
-            {serverStatus === 'offline' && (
-              <button onClick={checkServer} className="ml-auto hover:text-white"><RefreshCw className="w-3 h-3"/></button>
-            )}
+          <div className={`w-2 h-2 rounded-full ${serverStatus === 'online' ? 'bg-green-400' : 'bg-red-400'}`}></div>
+          <span className="text-xs font-mono uppercase">
+            {serverStatus === 'online' ? 'Systems Nominal' : 'Connection Lost'}
+          </span>
+          {serverStatus === 'offline' && (
+            <button onClick={checkServer} className="ml-auto hover:text-white"><RefreshCw className="w-3 h-3" /></button>
+          )}
         </div>
       </div>
 
@@ -137,32 +137,71 @@ function App() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <AnimatePresence>
-            {messages.map((msg, idx) => (
-              <motion.div 
-                key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div className={`max-w-[70%] p-4 rounded-2xl flex items-start space-x-3 ${
-                  msg.role === 'user' 
-                    ? 'bg-blue-600/20 border border-blue-500/30 text-white rounded-tr-sm' 
-                    : 'bg-slate-800/40 border border-white/5 text-gray-100 rounded-tl-sm'
-                }`}>
-                  <div className="mt-1">
-                    {msg.role === 'user' ? <User className="w-4 h-4 text-blue-400" /> : <Bot className="w-4 h-4 text-purple-400" />}
-                  </div>
-                  <div className="leading-relaxed whitespace-pre-wrap text-sm">{msg.content}</div>
+            {messages.length === 1 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-in fade-in duration-700">
+                <div className="w-24 h-24 rounded-full bg-slate-800/50 flex items-center justify-center border border-white/10 shadow-2xl relative">
+                  <div className="absolute inset-0 rounded-full bg-blue-500/10 animate-pulse"></div>
+                  <Bot className="w-12 h-12 text-blue-400" />
+                </div>
+                <div className="space-y-2 max-w-md">
+                  <h2 className="text-2xl font-bold text-white">Online & Ready</h2>
+                  <p className="text-slate-400">
+                    I am connected to your local LLM and Pinecone Vector Database.
+                    Select an action below or type a command.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg">
+                  {[
+                    { label: "Who are you?", cmd: "Who are you and what can you do?" },
+                    { label: "Check Knowledge", cmd: "What is currently in your memory bank?" },
+                    { label: "Writing Assist", cmd: "Draft a professional email about AI." },
+                    { label: "Explain RAG", cmd: "How does your retrieval system work?" },
+                  ].map((action, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setInput(action.cmd);
+                        // Optional: auto-send
+                        // handleSend();
+                      }}
+                      className="p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-white/5 rounded-xl text-left transition-all hover:scale-[1.02] group"
+                    >
+                      <span className="text-blue-400 font-medium group-hover:text-blue-300">{action.label}</span>
+                      <p className="text-xs text-slate-500 mt-1 truncate">{action.cmd}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <AnimatePresence>
+                {messages.map((msg, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div className={`max-w-[80%] p-4 rounded-2xl flex items-start space-x-4 shadow-sm ${msg.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-sm shadow-blue-900/20'
+                        : 'bg-slate-800/80 backdrop-blur-sm border border-white/10 text-gray-100 rounded-tl-sm shadow-black/20'
+                      }`}>
+                      <div className={`mt-1 p-1.5 rounded-lg ${msg.role === 'user' ? 'bg-blue-800/30' : 'bg-slate-700/50'}`}>
+                        {msg.role === 'user' ? <User className="w-4 h-4 text-blue-100" /> : <Bot className="w-4 h-4 text-purple-300" />}
+                      </div>
+                      <div className="leading-relaxed whitespace-pre-wrap text-[15px]">{msg.content}</div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+            {isLoading && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
+                <div className="bg-slate-800/40 border border-white/5 p-4 rounded-2xl rounded-tl-sm flex items-center space-x-2">
+                  <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
+                  <span className="text-gray-400 text-sm">Processing...</span>
                 </div>
               </motion.div>
-            ))}
-            {isLoading && (
-               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-                 <div className="bg-slate-800/40 border border-white/5 p-4 rounded-2xl rounded-tl-sm flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 text-purple-400 animate-spin" />
-                    <span className="text-gray-400 text-sm">Processing...</span>
-                 </div>
-               </motion.div>
             )}
           </AnimatePresence>
           <div ref={messagesEndRef} />
@@ -171,8 +210,8 @@ function App() {
         {/* Input Area */}
         <div className="p-4 bg-slate-900/50 border-t border-white/5">
           <div className="flex space-x-2">
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="flex-1 bg-slate-800/50 border border-slate-700 text-white placeholder-gray-500 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium"
               placeholder="Enter command..."
               value={input}
@@ -180,7 +219,7 @@ function App() {
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               disabled={isLoading}
             />
-            <button 
+            <button
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
               className="bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-600/20"
